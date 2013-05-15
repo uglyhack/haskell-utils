@@ -6,14 +6,16 @@ module System.Directory.Utils
   )
   where
 
+import Control.Applicative
+  ( (<$>))
 import Control.Exception
-  ( SomeException, catch)
-import Control.Monad   
-  ( foldM)
+  ( SomeException, handle)
+import Control.Monad.Utils
+  ( partitionM)
 import Control.Monad.Writer
   ( lift, execWriterT, tell)
 import System.Directory 
-  ( getDirectoryContents, doesFileExist)
+  ( getDirectoryContents, doesDirectoryExist)
 import System.FilePath
   ( (</>))
 
@@ -22,23 +24,17 @@ getDirectoryContentsRecursive :: (SomeException -> IO ([FilePath],[FilePath]))
                               -> IO ([FilePath],[FilePath])
 getDirectoryContentsRecursive handler = execWriterT . scanRecursive
   where
-    scanRecursive d              = do
-      (ds,fs) <- lift $ catch (getDirectoryContents d >>= separateEntries d)
-                        handler
+    scanRecursive d = do
+      (ds,fs) <- lift $   handle handler
+                      $   map (d </>) . filter dotDirs
+                      <$> getDirectoryContents d
+                      >>= partitionM doesDirectoryExist
       tell (ds,fs)
       mapM_ scanRecursive ds
-    separateEntries d            = foldM (separateEntry d) ([],[])
-    separateEntry d es@(ds,fs) e =
-      let e' = d </> e
-      in  do isFile <- doesFileExist e'
-             return $ if   (e == ".") || (e == "..")
-                      then es
-                      else if   isFile
-                           then (ds,e':fs)
-                           else (e':ds,fs)
+    dotDirs d       = not (d == "." || d == "..")
 
 getFilesRecursive handler dir =
-  snd `fmap` getDirectoryContentsRecursive handler dir
+  snd <$> getDirectoryContentsRecursive handler dir
 
 getDirectoriesRecursive handler dir =
-  fst `fmap` getDirectoryContentsRecursive handler dir
+  fst <$> getDirectoryContentsRecursive handler dir
