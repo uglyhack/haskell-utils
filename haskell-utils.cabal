@@ -17,8 +17,10 @@ source-repository head
 
 library
   exposed-modules:    System.Directory.Utils
+                 ,    Data.Function.Predicate
                  ,    Data.Either.Utils
                  ,    Data.Maybe.Utils
+                 ,    Control.Exception.Utils
   build-depends:      base >= 4.6
                ,      directory >= 1.2
                ,      filepath >= 1.3
