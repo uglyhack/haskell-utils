@@ -5,9 +5,7 @@ import Control.Monad
   ( Monad, foldM)
 
 partitionM :: Monad m => (a -> m Bool) -> [a] -> m ([a],[a])
-partitionM p = foldM seperate ([],[])
+partitionM p = foldM (\es e -> p e >>= return . select es e) ([],[])
   where
-    seperate (ys,ns) x =
-      p x >>= \r -> return $ if   r
-                             then (x:ys,ns)
-                             else (ys,x:ns)
+    select (ts,fs) x r | r         = (x:ts,fs)
+                       | otherwise = (ts,x:fs)
