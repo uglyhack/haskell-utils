@@ -21,6 +21,7 @@ library
                  ,    Data.Either.Utils
                  ,    Data.Maybe.Utils
                  ,    Control.Exception.Utils
+                 ,    Control.Monad.Utils
   build-depends:      base >= 4.6
                ,      directory >= 1.2
                ,      filepath >= 1.3
