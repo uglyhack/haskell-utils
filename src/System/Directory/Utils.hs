@@ -6,6 +6,8 @@ module System.Directory.Utils
   )
   where
 
+import Data.Function.Predicate
+  ( fromPredicates)
 import Control.Applicative
   ( (<$>))
 import Control.Exception
@@ -31,7 +33,7 @@ getDirectoryContentsRecursive handler = execWriterT . scanRecursive
                       >>= partitionM doesDirectoryExist
       tell (ds,fs)
       mapM_ scanRecursive ds
-    dotDirs d       = not (d == "." || d == "..")
+    dotDirs         = fromPredicates (not . or) [(== "."),(== "..")]
 
 getFilesRecursive handler dir =
   snd <$> getDirectoryContentsRecursive handler dir
